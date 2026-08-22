@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -17,15 +17,16 @@
   <script src="https://kit.fontawesome.com/a860a211d3.js" crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="assets/css/font_sans_serif.css">
-  <link rel="stylesheet" href="assets/css/theme-luka.css">
+  <link rel="stylesheet" href="assets/css/theme-szero.css">
 </head>
-<body class="theme-luka">
+<body class="theme-szero">
   <nav class="top-nav">
     <div class="nav-container">
       <div class="nav-left">
         <a href="./">Home</a>
       </div>
       <div class="nav-right">
+        <button id="languageToggle" class="theme-toggle" title="切换到英文" aria-label="切换到英文">EN</button>
         <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
           <i class="fa-solid fa-moon"></i>
         </button>
@@ -342,8 +343,119 @@
   <script src="assets/js/scale.fix.js"></script>
   <script>
     (function() {
+      const languageToggle = document.getElementById('languageToggle');
       const themeToggle = document.getElementById('themeToggle');
       const icon = themeToggle.querySelector('i');
+
+      const englishTranslations = {
+        '#about h2': ['About Me'],
+        '#about .about-intro': ['Hello! I am <strong>Song Zerong</strong>. Welcome to my homepage.'],
+        '#about .about-detail': [
+          'I am currently pursuing a master\'s degree in Surveying and Mapping and Remote Sensing at Hohai University. My research focuses on GNSS and the fusion and processing of multi-source remote sensing data. I am proficient in MATLAB, Python, C++, and JavaScript, and I also use Vue 3, Figma, Visio, and AutoCAD for product design and data processing.',
+          'I have practical experience in research and RAG projects, covering the full workflow from requirements analysis and solution design to technical validation and product delivery. I regularly use large language models such as ChatGPT and Claude, and have experience with AI-assisted development, including building Agents and Skills with LLMs. I have strong spoken and written English communication skills.'
+        ],
+        '#about .about-link': ['<strong><a href="assets/cv/宋泽荣的简历.pdf" target="_blank" rel="noopener">Download my CV (Chinese PDF)</a></strong>'],
+        '.site-name': ['Song Zerong', 'Song_Zero'],
+        '.profile-meta .meta-label': ['Email', 'Phone', 'WeChat', 'Ethnicity', 'Political status', 'MBTI', 'Interests'],
+        '.profile-meta .meta-value': ['1123663109@qq.com', '13372020946', '13372020946', 'Han Chinese', 'Probationary CPC member', 'ISTJ', 'Street dance, rock climbing, hiking'],
+        '.skill-card-title': ['Professional Skills'],
+        '.skill-level': ['Advanced', 'Proficient', 'Proficient', 'Proficient', 'Proficient'],
+        '#education h2': ['Education'],
+        '#education .exp-title': ['Hohai University', 'Suzhou University of Science and Technology'],
+        '#education .exp-meta': ['<span>211 Project</span><span>Sep 2024 - Jul 2027</span>', '<span>Tier-one undergraduate program</span><span>Sep 2020 - Jul 2024</span>'],
+        '#education .edu-row-1 .edu-item': ['Degree: Master\'s student', 'Major: Resources and Environment', 'Research: GNSS and multi-source remote sensing', 'Degree: Bachelor\'s degree', 'Major: Surveying and Mapping Engineering'],
+        '#education .edu-row-2 .edu-item': ['GPA: 3.5 / 5.0', 'Ranking: Top 10%', 'Location: Nanjing, Jiangsu', 'GPA: 3.2 / 5.0', 'Ranking: Top 10%', 'Location: Suzhou, Jiangsu'],
+        '#experience h2': ['Internship Experience'],
+        '#experience .exp-title': ['Jiangsu Beidou Satellite Industry Technology Research Institute', 'Jiangsu Provincial Geological Bureau'],
+        '#experience .exp-meta': ['Product Engineering Department  Intern', 'Feb 2026 - May 2026', 'Engineering Surveying Project Department  Intern', 'Feb 2026 - May 2026'],
+        '#experience .experience-steps li': [
+          'Contributed to frontend module development for a consumer drone flight management platform. Built flight missions, pilot management, and trajectory visualization modules with Vue 3, Element Plus, and Axios, while participating in system design and business workflow implementation.',
+          'Contributed to a business traffic congestion visualization platform. Used Figma for page design and interaction refinement, and ECharts for dynamic visualization of traffic flow and congestion indexes, improving information delivery efficiency.',
+          'Participated in the full lifecycle of a local large language model application, from project initiation to delivery. Helped analyze business requirements and design a local deployment solution, deployed open-source models with Ollama, and wrapped model APIs with FastAPI. Designed structured output and validation with Pydantic and JSON Schema, and coordinated unified testing of Llama, Phi, and Mistral models to support model selection and deployment.',
+          'Participated in a metro tunnel structural health monitoring project, carrying out periodic GNSS observation, data collection, and office-based processing. Conducted monitoring data quality checks, defect identification, and risk assessment.',
+          'Contributed to an RAG-based retrieval system by segmenting technical documents, generating embeddings, and storing them in ChromaDB. Helped build document question answering and citation workflows with semantic retrieval and Top-K recall, as well as hybrid retrieval, Cross-Encoder reranking, and offline RAG evaluation.'
+        ],
+        '#projects h2': ['Project Experience'],
+        '#projects .exp-title': ['RAG-Based Retrieval and Citation System for Metro Monitoring Technical Documents'],
+        '#projects .exp-meta': ['RAG Feature Development', 'Nov 2025 - Jan 2026'],
+        '#projects .experience-steps li': [
+          'The project covered three stages: core feature development, retrieval quality enhancement, and question-answering evaluation and optimization. The first stage included PDF manual segmentation, cleaning, and vectorization, with semantic vector similarity used for basic retrieval and Top-K candidate recall. The second stage introduced BM25 hybrid retrieval and Cross-Encoder reranking to improve semantic matching for complex engineering terminology. Finally, approximately 100 Gold Set items were created for Faithfulness evaluation and continuous offline optimization of answer quality and delivery readiness.',
+          'Parsed and segmented an approximately 30-page metro monitoring engineering manual provided by the company. Text was divided into 1,000-character chunks, approximately 700 tokens, with 20% overlap; embedding vectors were stored in Chroma for semantic retrieval. Also contributed to Top-K recall design to quickly retrieve the 15 most relevant document passages as reliable context for generation.'
+        ],
+        '#publications h2': ['Research Experience'],
+        '#publications .exp-meta': ['Under review at Water Resources Management', 'Mar 2025 - Dec 2025'],
+        '#publications .experience-steps li': [
+          'Conducted modeling, analysis, and fusion research using GNSS and multi-source remote sensing data, including data processing, technical validation, and algorithm improvement.',
+          'Designed and implemented the full research workflow, including task breakdown, technical planning, experiment design, coding, and result validation. Used Claude for prompt coding and MATLAB and Python for multi-source data processing, metric calculation, model construction, and result analysis.'
+        ],
+        '.content > .section:nth-child(6) h2': ['Student Leadership'],
+        '.content > .section:nth-child(6) .exp-title': ['Vice President, School Student Union'],
+        '.content > .section:nth-child(6) .exp-meta': ['Sep 2021 - Jun 2022'],
+        '.content > .section:nth-child(6) .experience-steps li': [
+          'Organized regular project meetings, coordinated communication across departments, collected 13 process improvement suggestions, and helped implement them. Coordinated three large-scale events with more than 500 total participants, covering requirements analysis, planning, process design, resource coordination, SOP development, and delivery.',
+          'Led a social practice project focused on revisiting the history of Party building and tracing its red cultural themes. Defined objectives, decomposed tasks, developed execution and acceptance criteria, coordinated members, and completed survey data consolidation, project acceptance, and results presentation.'
+        ],
+        '#awards h2': ['Awards'],
+        '#awards .exp-title': ['Competition Awards', 'Scholarships', 'Other Campus Honors'],
+        '#awards .exp-meta': [
+          'National Undergraduate Surveying and Mapping Innovation and Entrepreneurship Competition  Second Prize, Professional Category', 'Aug 2022  National level',
+          'National College English Competition  Second Prize', 'May 2021  National level',
+          'Hohai University Comprehensive Second-Class Scholarship', 'Oct 2024  University level',
+          'Suzhou University of Science and Technology Comprehensive Second-Class Scholarship', 'Nov 2022  University level',
+          'Outstanding Youth League Member and Cadre, Jingwen College, 2021', 'Mar 2022  University level'
+        ],
+        '.site-footer p': ['&copy; 2026 Song Zerong. All rights reserved.']
+      };
+
+      const originalContent = new Map();
+      Object.keys(englishTranslations).forEach(function(selector) {
+        document.querySelectorAll(selector).forEach(function(element) {
+          originalContent.set(element, element.innerHTML);
+        });
+      });
+
+      function setLanguage(language, animate) {
+        const applyLanguage = function() {
+          const isEnglish = language === 'en';
+          Object.keys(englishTranslations).forEach(function(selector) {
+            const elements = document.querySelectorAll(selector);
+            const values = englishTranslations[selector];
+            elements.forEach(function(element, index) {
+              element.innerHTML = isEnglish ? (values[index] || values[0]) : originalContent.get(element);
+            });
+          });
+          document.documentElement.lang = isEnglish ? 'en' : 'zh-CN';
+          document.title = isEnglish ? 'Song Zerong - Homepage' : '宋泽荣 - Homepage';
+          document.querySelector('meta[name="description"]').content = isEnglish
+            ? 'The personal homepage of Song Zerong, featuring research, education, projects, and professional experience.'
+            : '宋泽荣的个人主页，记录研究、学习与项目经历。';
+          document.querySelector('meta[name="keywords"]').content = isEnglish
+            ? 'personal homepage, academic homepage, researcher, student, portfolio'
+            : '个人主页, 学术主页, 研究者, 学生, 个人网站';
+          languageToggle.textContent = isEnglish ? '中' : 'EN';
+          languageToggle.title = isEnglish ? 'Switch to Chinese' : '切换到英文';
+          languageToggle.setAttribute('aria-label', languageToggle.title);
+          localStorage.setItem('language', language);
+          document.body.classList.remove('language-switching');
+          languageToggle.disabled = false;
+        };
+
+        if (animate) {
+          languageToggle.disabled = true;
+          document.body.classList.add('language-switching');
+          window.setTimeout(applyLanguage, 180);
+        } else {
+          applyLanguage();
+        }
+      }
+
+      const savedLanguage = localStorage.getItem('language');
+      setLanguage(savedLanguage === 'en' ? 'en' : 'zh');
+
+      languageToggle.addEventListener('click', function() {
+        const language = document.documentElement.lang === 'en' ? 'zh' : 'en';
+        setLanguage(language, true);
+      });
 
       function setTheme(isDark) {
         document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
