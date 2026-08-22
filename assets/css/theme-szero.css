@@ -494,6 +494,16 @@ body.theme-szero .edu-item {
   white-space: nowrap;
 }
 
+html[lang="en"] body.theme-szero .edu-detail-row {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1.6fr);
+  column-gap: 10px;
+}
+
+html[lang="en"] body.theme-szero .edu-item {
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
 body.theme-szero .edu-label {
   color: var(--szero-text);
   font-weight: 500;
@@ -600,6 +610,10 @@ body.theme-szero strong {
   body.theme-szero .edu-detail-row {
     grid-template-columns: 1fr;
     row-gap: 12px;
+  }
+
+  html[lang="en"] body.theme-szero .edu-detail-row {
+    grid-template-columns: 1fr;
   }
 
   body.theme-szero .institution-logo {
