@@ -116,7 +116,7 @@
           </p>
 
           <p class="about-detail">
-            我具备科研与 RAG 项目的实践经验，熟悉从需求分析、方案设计、技术验证到产品落地的流程，能够高效协同研发、运营等团队。日常深度使用 ChatGPT、Claude 等大语言模型，并具备 AI 辅助开发经验，能够基于 LLM 构建 Agent 与 Skills 来提升工作效率。英语具备较强的口语交流和书面表达能力。
+            我具备科研与 企业级AGENT 项目的实践经验，熟悉从需求分析、方案设计、技术验证到产品落地的流程，能够高效协同研发、运营等团队。日常深度使用 ChatGPT、Claude 等大语言模型，并具备 AI 辅助开发经验，能够基于 LLM 构建 Agent 与 Skills 来提升工作效率。英语具备较强的口语交流和书面表达能力。
           </p>
 
           <p class="about-link"><strong><a href="assets/cv/宋泽荣的简历.pdf" target="_blank" rel="noopener">点击这里下载我的 CV</a></strong></p>
@@ -352,7 +352,7 @@
         '#about .about-intro': ['Hello! I am <strong>Song Zerong</strong>. Welcome to my homepage.'],
         '#about .about-detail': [
           'I am currently pursuing a master\'s degree in Surveying and Mapping and Remote Sensing at Hohai University. My research focuses on GNSS and the fusion and processing of multi-source remote sensing data. I am proficient in MATLAB, Python, C++, and JavaScript, and I also use Vue 3, Figma, Visio, and AutoCAD for product design and data processing.',
-          'I have practical experience in research and RAG projects, covering the full workflow from requirements analysis and solution design to technical validation and product delivery. I regularly use large language models such as ChatGPT and Claude, and have experience with AI-assisted development, including building Agents and Skills with LLMs. I have strong spoken and written English communication skills.'
+          'I have practical experience in research and enterprise-level Agent projects, covering the full workflow from requirements analysis and solution design to technical validation and product delivery. I can efficiently collaborate with R&D, operations, and other teams. I deeply use large language models such as ChatGPT and Claude on a daily basis, and have experience with AI-assisted development, enabling me to build Agents and Skills based on LLMs to improve work efficiency. I have strong spoken and written English communication skills.'
         ],
         '#about .about-link': ['<strong><a href="assets/cv/宋泽荣的简历.pdf" target="_blank" rel="noopener">Download my CV (Chinese PDF)</a></strong>'],
         '.site-name': ['Song Zerong', 'Song_Zero'],
@@ -369,18 +369,18 @@
         '#experience .exp-title': ['Jiangsu Beidou Satellite Industry Technology Research Institute', 'Jiangsu Provincial Geological Bureau'],
         '#experience .exp-meta': ['Product Engineering Department  Intern', 'Feb 2026 - May 2026', 'Engineering Surveying Project Department  Intern', 'Feb 2026 - May 2026'],
         '#experience .experience-steps li': [
-          'Contributed to frontend module development for a consumer drone flight management platform. Built flight missions, pilot management, and trajectory visualization modules with Vue 3, Element Plus, and Axios, while participating in system design and business workflow implementation.',
-          'Contributed to a business traffic congestion visualization platform. Used Figma for page design and interaction refinement, and ECharts for dynamic visualization of traffic flow and congestion indexes, improving information delivery efficiency.',
-          'Participated in the full lifecycle of a local large language model application, from project initiation to delivery. Helped analyze business requirements and design a local deployment solution, deployed open-source models with Ollama, and wrapped model APIs with FastAPI. Designed structured output and validation with Pydantic and JSON Schema, and coordinated unified testing of Llama, Phi, and Mistral models to support model selection and deployment.',
-          'Participated in a metro tunnel structural health monitoring project, carrying out periodic GNSS observation, data collection, and office-based processing. Conducted monitoring data quality checks, defect identification, and risk assessment.',
-          'Contributed to an RAG-based retrieval system by segmenting technical documents, generating embeddings, and storing them in ChromaDB. Helped build document question answering and citation workflows with semantic retrieval and Top-K recall, as well as hybrid retrieval, Cross-Encoder reranking, and offline RAG evaluation.'
+          'Contributed to frontend module development for a B2C drone flight management platform. Built flight tasks, pilot management, and trajectory visualization modules with Vue 3, Element Plus, and Axios, while participating in system design and business workflow implementation.',
+          'Contributed to a B2B traffic congestion visualization platform development. Used Figma for page design and interaction optimization, and implemented dynamic visualization of traffic flow and congestion indices using ECharts, improving information display efficiency.',
+          'Led project planning and process design. Streamlined drone task allocation, pilot scheduling, and plan confirmation workflows, designing multi-Agent collaboration mechanisms. Participated in RAG optimization by adjusting text chunking, embedding, and reranking strategies to improve retrieval accuracy. Wrote Agent workflow and system technical documentation to ensure project maintainability and delivery quality.',
+          'Participated in a metro tunnel structural health monitoring project. Responsible for periodic GNSS monitoring observation, data collection, and office-based data processing. Conducted monitoring data quality checks, defect identification, and risk assessment.',
+          'Participated in the full lifecycle of a local large language model application project from initiation to deployment. Helped streamline business requirements and design a localization deployment solution. Deployed open-source models locally using Ollama and wrapped model APIs with FastAPI. Designed structured output validation with Pydantic and JSON Schema to improve output stability. Coordinated unified testing of Llama, Phi, and Mistral models, forming model selection analysis and promoting solution deployment.'
         ],
         '#projects h2': ['Project Experience'],
-        '#projects .exp-title': ['RAG-Based Retrieval and Citation System for Metro Monitoring Technical Documents'],
-        '#projects .exp-meta': ['RAG Feature Development', 'Nov 2025 - Jan 2026'],
+        '#projects .exp-title': ['Multi-Agent Collaborative Intelligent Drone Task Scheduling and Pilot Management Platform'],
+        '#projects .exp-meta': ['Agent System Refinement', 'Nov 2025 - Jan 2026'],
         '#projects .experience-steps li': [
-          'The project covered three stages: core feature development, retrieval quality enhancement, and question-answering evaluation and optimization. The first stage included PDF manual segmentation, cleaning, and vectorization, with semantic vector similarity used for basic retrieval and Top-K candidate recall. The second stage introduced BM25 hybrid retrieval and Cross-Encoder reranking to improve semantic matching for complex engineering terminology. Finally, approximately 100 Gold Set items were created for Faithfulness evaluation and continuous offline optimization of answer quality and delivery readiness.',
-          'Parsed and segmented an approximately 30-page metro monitoring engineering manual provided by the company. Text was divided into 1,000-character chunks, approximately 700 tokens, with 20% overlap; embedding vectors were stored in Chroma for semantic retrieval. Also contributed to Top-K recall design to quickly retrieve the 15 most relevant document passages as reliable context for generation.'
+          'The project employs a multi-Agent collaboration architecture, using task classification to understand requirements, scheduling Agents to match pilots, and behavior analysis to establish capability models. Core innovations: RAG-based knowledge QA (integrating flight manuals, weather, safety regulations), intelligent pilot matching (multi-dimensional optimal configuration), and visualized task management. Tech stack: FastAPI + LangChain + FAISS + SQLite, supporting API integration with both local and online LLMs.',
+          'Responsible for the full workflow from requirements analysis to system delivery. Requirements analysis phase: completed product requirement research, streamlined drone task allocation, pilot scheduling, and flight plan confirmation workflows, designed a five-layer hierarchical architecture and multi-Agent collaboration mechanism. RAG optimization phase: adjusted text chunking strategy (by task type/weather/pilot level), optimized embedding vector dimensions, and implemented reranking mechanism. Documentation: responsible for writing Markdown technical documentation for Agent decision workflows, RAG retrieval mechanisms, and system architecture to ensure system maintainability.'
         ],
         '#publications h2': ['Research Experience'],
         '#publications .exp-meta': ['Under review at Water Resources Management', 'Mar 2025 - Dec 2025'],
