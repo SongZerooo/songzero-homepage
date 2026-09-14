@@ -30,9 +30,11 @@
     .check { display: flex; align-items: center; gap: 8px; color: #27364d; font-size: 16px; }
     .check input { accent-color: #17243a; }
     .actions { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+    .actions button { flex: 1; }
     button { min-height: 42px; padding: 0 12px; border: 1px solid #17243a; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; }
     .primary { flex: 1; background: #17243a; color: #fff; }
     .secondary { background: #fff; color: #17243a; }
+    .word-export, .pdf-export { background: #000; border-color: #000; color: #fff; }
     button:hover { transform: translateY(-1px); }
     .preview-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
     .preview-toolbar { display: flex; justify-content: space-between; margin-bottom: 10px; color: #526176; font-size: 14px; font-weight: 600; }
@@ -88,7 +90,7 @@
 </head>
 <body>
   <header class="app-header">
-    <div><h1>简历生成器</h1><p>读取主页信息，自定义排版后导出 PDF</p></div>
+    <div><h1>简历生成器</h1><p>读取主页信息，自定义排版后导出 PDF 或 Word</p></div>
     <a class="back-button" href="index.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>返回个人主页</a>
   </header>
   <main class="app-layout" id="app" hidden>
@@ -102,7 +104,7 @@
       <label class="field"><span>段间距</span><select name="paragraphGap" id="paragraphGap" data-start="0" data-end="10" data-step="1" data-unit="pt"></select></label>
       <label class="field"><span>照片大小 <output id="portraitSizeValue">28 mm</output></span><input id="portraitSize" type="range" min="20" max="40" step="1" value="28"></label>
       <label class="check"><input id="boldTitles" type="checkbox" checked><span>标题加粗</span></label>
-      <div class="actions"><button class="secondary" type="button" id="previewButton"><i class="fa-solid fa-eye" aria-hidden="true"></i> 更新预览</button><button class="primary" type="submit"><i class="fa-solid fa-download" aria-hidden="true"></i> 导出 PDF</button></div>
+      <div class="actions"><button class="secondary" type="button" id="previewButton"><i class="fa-solid fa-eye" aria-hidden="true"></i> 更新预览</button><button class="word-export" type="button" id="wordButton"><i class="fa-solid fa-file-word" aria-hidden="true"></i> 导出 Word</button><button class="pdf-export" type="submit"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> 导出 PDF</button></div>
     </form>
     <section class="preview-panel">
       <div class="preview-toolbar"><span>预览</span><span id="pageSize">A4 · 0 页</span></div>
@@ -265,7 +267,33 @@
       }
       function updatePreview() { updateLabels(); if (!summary.value.trim()) { documentPreview.innerHTML = '<article class="resume-sheet"><div class="sheet-content"><div class="empty">请先填写新的自我评价</div></div></article>'; pageSize.textContent = 'A4 · 0 页'; return; } paginate(build()); }
       function loadSource() { return fetch('index.html').then(function(response) { if (!response.ok) throw new Error('source'); return response.text(); }).then(function(html) { sourceDocument = new DOMParser().parseFromString(html, 'text/html'); app.hidden = false; summary.focus(); }); }
+      function downloadWord() {
+        if (!summary.value.trim()) { summary.reportValidity(); return; }
+        var data = sourceData();
+        var contactNode = document.createElement('div');
+        contactNode.innerHTML = data.contact;
+        var markup = '<h1>' + esc(data.name) + '</h1><p>' + esc(contactNode.textContent.trim()) + '</p><p>' + esc(data.skills.join('、')) + '</p>';
+        markup += '<h2>自我评价</h2><p>' + esc(summary.value.trim()) + '</p>';
+        [data.education, data.experience, data.projects, data.research, data.leadership, data.awards].forEach(function(item) {
+          if (!item || !item.entries.length) return;
+          markup += '<h2>' + esc(item.title) + '</h2>';
+          item.entries.forEach(function(entry) {
+            markup += '<h3>' + esc(entry.title) + '</h3>';
+            if (entry.meta) markup += '<p>' + esc(entry.meta) + '</p>';
+            entry.details.forEach(function(detail) { markup += '<p>' + esc(detail) + '</p>'; });
+            if (entry.bullets.length) markup += '<ul>' + entry.bullets.map(function(bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul>';
+          });
+        });
+        var html = '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>简历</title></head><body>' + markup + '</body></html>';
+        var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = (data.name || 'resume') + '-简历.doc';
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
       summary.addEventListener('input', updatePreview); document.getElementById('previewButton').addEventListener('click', updatePreview); document.querySelectorAll('select[name]').forEach(function(select) { select.addEventListener('change', updatePreview); }); controls.portraitSize.addEventListener('input', updatePreview); controls.boldTitles.addEventListener('change', updatePreview);
+      document.getElementById('wordButton').addEventListener('click', downloadWord);
       form.addEventListener('submit', async function(event) { event.preventDefault(); if (!summary.value.trim()) { summary.reportValidity(); return; } updatePreview(); if (typeof html2canvas !== 'function' || !window.jspdf || typeof window.jspdf.jsPDF !== 'function') { window.print(); return; } var pages = Array.prototype.slice.call(documentPreview.querySelectorAll('.resume-sheet')); var pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }); for (var index = 0; index < pages.length; index += 1) { var canvas = await html2canvas(pages[index], { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, width: pages[index].scrollWidth, height: pages[index].scrollHeight }); if (index > 0) pdf.addPage(); pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297, undefined, 'FAST'); } pdf.save((sourceData().name || 'resume') + '-简历.pdf'); });
       populateSettings();
       loadSource().catch(function() { error.hidden = false; });
