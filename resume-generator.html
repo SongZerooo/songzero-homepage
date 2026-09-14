@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>简历生成器 - 宋泽荣</title>
+  <script src="https://kit.fontawesome.com/a860a211d3.js" crossorigin="anonymous"></script>
+  <style>
+    :root { color: #17243a; font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 16px; background: #e9edf2; }
+    * { box-sizing: border-box; }
+    body { margin: 0; }
+    .app-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 18px 28px; background: #17243a; color: #fff; }
+    .back-button { display: inline-flex; align-items: center; gap: 7px; min-height: 42px; padding: 0 14px; border: 1px solid #708198; border-radius: 6px; background: transparent; color: #fff; text-decoration: none; font-size: 16px; font-weight: 600; }
+    .back-button:hover { background: rgba(255, 255, 255, .1); }
+    .app-header h1 { margin: 0; font-size: 26px; }
+    .app-header p { margin: 4px 0 0; color: #b8c8dc; font-size: 16px; }
+    .app-layout { display: grid; grid-template-columns: 310px minmax(0, 1fr); gap: 22px; width: min(1180px, calc(100% - 32px)); height: calc(100vh - 90px); margin: 16px auto; }
+    .settings { display: flex; flex-direction: column; gap: 13px; padding: 18px; overflow-y: auto; border: 1px solid #d7dde6; border-radius: 10px; background: #fff; }
+    .field { display: flex; flex-direction: column; gap: 6px; color: #27364d; font-size: 16px; font-weight: 600; }
+    .field textarea { min-height: 108px; resize: vertical; padding: 10px; border: 1px solid #cfd7e2; border-radius: 6px; color: #17243a; font: inherit; line-height: 1.5; }
+    .field b { color: #b04646; }
+    .field output { float: right; color: #6b788a; font-weight: 400; }
+    .field input[type="range"] { width: 100%; accent-color: #17243a; }
+    .settings-heading { margin-top: 4px; padding-top: 14px; border-top: 1px solid #e2e6ec; color: #17243a; font-size: 16px; font-weight: 700; }
+    .option-group { display: grid; grid-template-columns: minmax(0, 1fr) minmax(132px, 44%); align-items: center; gap: 9px; margin: 0; padding: 0; border: 0; }
+    .option-group legend { color: #27364d; font-size: 16px; font-weight: 600; }
+    .field select { width: 100%; min-height: 42px; padding: 0 34px 0 12px; border: 1px solid #cbd5e1; border-radius: 8px; outline: 0; background: #f7f9fc; color: #17243a; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; appearance: none; background-image: linear-gradient(45deg, transparent 50%, #526176 50%), linear-gradient(135deg, #526176 50%, transparent 50%); background-position: calc(100% - 17px) 18px, calc(100% - 12px) 18px; background-size: 5px 5px, 5px 5px; background-repeat: no-repeat; transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease; }
+    .field select:hover { border-color: #8b9ab0; background-color: #fff; }
+    .field select:focus { border-color: #17243a; box-shadow: 0 0 0 3px rgba(23, 36, 58, .12); }
+    .check { display: flex; align-items: center; gap: 8px; color: #27364d; font-size: 16px; }
+    .check input { accent-color: #17243a; }
+    .actions { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+    button { min-height: 42px; padding: 0 12px; border: 1px solid #17243a; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px; font-weight: 600; }
+    .primary { flex: 1; background: #17243a; color: #fff; }
+    .secondary { background: #fff; color: #17243a; }
+    button:hover { transform: translateY(-1px); }
+    .preview-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+    .preview-toolbar { display: flex; justify-content: space-between; margin-bottom: 10px; color: #526176; font-size: 14px; font-weight: 600; }
+    .preview-viewport { min-height: 0; flex: 1; overflow: auto; padding: 18px; border: 1px solid #d7dde6; border-radius: 10px; background: #dfe4eb; }
+    .resume-document { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+    .resume-document.pdf-export { gap: 0; }
+    .resume-document.pdf-export .resume-sheet + .resume-sheet { break-before: auto; page-break-before: auto; }
+    .resume-document.pdf-export .resume-sheet,
+    .resume-document.pdf-export .sheet-content { height: 296mm; }
+    .resume-document.pdf-export .resume-sheet { flex-basis: 296mm; }
+    .resume-sheet { width: 210mm; height: 297mm; flex: 0 0 297mm; overflow: hidden; background: #fff; box-shadow: 0 8px 24px rgba(22, 42, 70, .18); }
+    .resume-sheet + .resume-sheet { break-before: page; page-break-before: always; }
+    .sheet-content { width: 210mm; height: 297mm; overflow: hidden; padding: var(--resume-margin, 12mm); color: #1d2735; font-size: var(--resume-font-size, 12pt); line-height: var(--resume-line-height, 1.35); }
+    .sheet-header { display: flex; align-items: end; justify-content: space-between; gap: 14px; padding-bottom: 8pt; border-bottom: 2px solid #17243a; }
+    .identity { min-width: 0; flex: 1; }
+    .sheet-header h2 { margin: 0 0 11pt; color: #17243a; font-size: 21pt; line-height: 1.1; }
+    .contact { display: flex; flex-direction: column; gap: 4pt; margin: 0; color: #526176; font-size: 10.5pt; line-height: 1.2; }
+    .contact-line { display: flex; flex-wrap: wrap; gap: 0 16pt; }
+    .contact-line span { white-space: nowrap; }
+    .sheet-skills { margin: 8pt 0 0; padding-top: 0; color: #526176; font-size: 9.5pt; }
+    .skills-row { display: flex; flex-wrap: wrap; gap: 2pt 16pt; margin-bottom: 0; line-height: 1.2; }
+    .skills-row:last-child { margin-bottom: 0; }
+    .skills-row span { flex: 0 0 auto; min-width: 0; }
+    .portrait { width: var(--portrait-size, 28mm); height: calc(var(--portrait-size, 28mm) * 1.2857); flex: 0 0 var(--portrait-size, 28mm); object-fit: cover; border: 1px solid #c6ced9; }
+    .resume-section { margin-top: var(--resume-paragraph-gap, 3pt); break-inside: avoid; }
+    .resume-section + .resume-section { margin-top: 1pt; padding-top: 1pt; border-top: 1px solid #aeb8c5; }
+    .resume-section h3 { margin: 0 0 4pt; padding-bottom: 0; color: #17243a; font-size: var(--resume-heading-size, 16pt); line-height: 1.1; }
+    .summary p { margin: 0; white-space: pre-line; }
+    .entry { margin-bottom: var(--resume-paragraph-gap, 3pt); break-inside: avoid; }
+    .entry-heading { display: flex; justify-content: space-between; gap: 10px; line-height: 1.15; }
+    .entry-heading strong { color: #17243a; font-weight: 500; }
+    .bold-titles .resume-section h3, .bold-titles .entry-heading strong { font-weight: 700; }
+    .entry-heading span { flex-shrink: 0; color: #5f6b7d; font-size: .92em; text-align: right; }
+    .entry-details { display: flex; flex-wrap: wrap; gap: 2pt 16pt; margin-top: 3pt; color: #526176; font-size: .94em; }
+    .entry-detail { display: inline-block; }
+    .entry ul { margin: 2pt 0 0; padding-left: 15pt; }
+    .entry li { margin: 0 0 1.5pt; }
+    .empty { display: grid; min-height: 250px; place-items: center; color: #7b8797; font-size: 14px; }
+    .error { width: min(680px, calc(100% - 32px)); margin: 80px auto; padding: 24px; border-radius: 10px; background: #fff; color: #8d3e3e; }
+    @media (max-width: 800px) {
+      .app-header { padding: 16px; }
+      .app-layout { display: flex; flex-direction: column; width: calc(100% - 16px); height: auto; margin: 8px auto; }
+      .settings { overflow: visible; }
+      .preview-panel { min-height: 600px; }
+      .resume-document { align-items: flex-start; }
+    }
+    @media print {
+      .app-header, .settings, .preview-toolbar { display: none; }
+      .app-layout, .preview-panel, .preview-viewport { display: block; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; border: 0; background: #fff; }
+      .resume-sheet, .sheet-content { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="app-header">
+    <div><h1>简历生成器</h1><p>读取主页信息，自定义排版后导出 PDF</p></div>
+    <a class="back-button" href="index.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>返回个人主页</a>
+  </header>
+  <main class="app-layout" id="app" hidden>
+    <form class="settings" id="resumeSettings">
+      <label class="field"><span>新的自我评价 <b>*</b></span><textarea id="resumeSummary" rows="5" required placeholder="请输入一份新的、比网页版本更完整的自我评价"></textarea></label>
+      <div class="settings-heading">版式设置</div>
+      <label class="field"><span>正文字号</span><select name="fontSize" id="fontSize" data-start="3" data-end="30" data-step="0.5" data-unit="pt"></select></label>
+      <label class="field"><span>标题字号</span><select name="headingSize" id="headingSize" data-start="3" data-end="30" data-step="0.5" data-unit="pt"></select></label>
+      <label class="field"><span>页边距</span><select name="margin" id="margin" data-start="5" data-end="25" data-step="2" data-unit="mm"></select></label>
+      <label class="field"><span>行间距</span><select name="lineHeight" id="lineHeight" data-values="0.5,1,1.25,1.5,1.75,2"></select></label>
+      <label class="field"><span>段间距</span><select name="paragraphGap" id="paragraphGap" data-start="0" data-end="10" data-step="1" data-unit="pt"></select></label>
+      <label class="field"><span>照片大小 <output id="portraitSizeValue">28 mm</output></span><input id="portraitSize" type="range" min="20" max="40" step="1" value="28"></label>
+      <label class="check"><input id="boldTitles" type="checkbox" checked><span>标题加粗</span></label>
+      <div class="actions"><button class="secondary" type="button" id="previewButton"><i class="fa-solid fa-eye" aria-hidden="true"></i> 更新预览</button><button class="primary" type="submit"><i class="fa-solid fa-download" aria-hidden="true"></i> 导出 PDF</button></div>
+    </form>
+    <section class="preview-panel">
+      <div class="preview-toolbar"><span>预览</span><span id="pageSize">A4 · 0 页</span></div>
+      <div class="preview-viewport"><div class="resume-document" id="resumeDocument"><article class="resume-sheet"><div class="sheet-content"><div class="empty">请先填写新的自我评价</div></div></article></div></div>
+    </section>
+  </main>
+  <div class="error" id="error" hidden>无法读取主页信息。请通过本地服务器打开此页面，例如 `python -m http.server 8000`，再访问 `/resume-generator.html`。</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script>
+    (function() {
+      var app = document.getElementById('app');
+      var error = document.getElementById('error');
+      var form = document.getElementById('resumeSettings');
+      var summary = document.getElementById('resumeSummary');
+      var documentPreview = document.getElementById('resumeDocument');
+      var pageSize = document.getElementById('pageSize');
+      var sourceDocument;
+      var controls = {
+        portraitSize: document.getElementById('portraitSize'), boldTitles: document.getElementById('boldTitles')
+      };
+      var output = { portraitSize: document.getElementById('portraitSizeValue') };
+
+      function esc(value) { return String(value || '').replace(/[&<>"']/g, function(character) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[character]; }); }
+      function text(root, selector) { var node = root.querySelector(selector); return node ? node.textContent.trim() : ''; }
+      function populateSettings() {
+        document.querySelectorAll('select[data-values], select[data-start]').forEach(function(select) {
+          var values = select.dataset.values ? select.dataset.values.split(',') : [];
+          if (!values.length) {
+            var start = Number(select.dataset.start);
+            var end = Number(select.dataset.end);
+            var step = Number(select.dataset.step);
+            for (var value = start; value <= end + 0.001; value += step) values.push(String(Number(value.toFixed(2))));
+          }
+          var unit = select.dataset.unit || '';
+          values.forEach(function(value) {
+            var option = document.createElement('option');
+            option.value = value;
+            option.textContent = value + (unit ? ' ' + unit : '');
+            select.appendChild(option);
+          });
+        });
+        document.getElementById('fontSize').value = '12';
+        document.getElementById('headingSize').value = '16';
+        document.getElementById('margin').value = '11';
+        document.getElementById('lineHeight').value = '1.25';
+        document.getElementById('paragraphGap').value = '3';
+      }
+      function section(root, title) {
+        if (!root) return null;
+        if (title === '获奖情况') {
+          var awardEntries = [];
+          root.querySelectorAll('.exp-meta').forEach(function(metaNode) {
+            var spans = metaNode.querySelectorAll('span');
+            awardEntries.push({ title: spans[0] ? spans[0].textContent.trim() : metaNode.textContent.trim(), meta: spans[1] ? spans[1].textContent.trim() : '', details: [], bullets: [] });
+          });
+          return { title: title, entries: awardEntries };
+        }
+        var entries = Array.prototype.map.call(root.querySelectorAll('.timeline-item'), function(item) {
+          var metaNodes = Array.prototype.slice.call(item.querySelectorAll('.exp-meta'));
+          var details = Array.prototype.map.call(item.querySelectorAll('.edu-detail-row .edu-item'), function(detail) { return detail.textContent.trim(); });
+          if (!details.length) details = metaNodes.slice(1).map(function(meta) { return meta.textContent.trim(); });
+          var entryTitle = text(item, '.exp-title');
+          var entryMeta = metaNodes.length ? metaNodes[0].textContent.trim() : '';
+          if (title === '教育经历') {
+            var major = details.find(function(detail) { return detail.indexOf('专业：') === 0; });
+            var degree = details.find(function(detail) { return detail.indexOf('学历：') === 0; });
+            var gpa = details.find(function(detail) { return detail.indexOf('GPA：') === 0; });
+            var ranking = details.find(function(detail) { return detail.indexOf('排名：') === 0; });
+            entryTitle += major ? '　' + major.replace('专业：', '') : '';
+            entryTitle += degree ? '　' + degree.replace('学历：', '') : '';
+            entryMeta = [gpa, ranking, metaNodes.length ? metaNodes[0].querySelectorAll('span')[1] && metaNodes[0].querySelectorAll('span')[1].textContent.trim() : ''].filter(Boolean).join('　');
+            details = [];
+          }
+          return { title: entryTitle, meta: entryMeta, details: details, bullets: Array.prototype.map.call(item.querySelectorAll('.experience-steps li'), function(li) { return li.textContent.trim(); }) };
+        }).filter(function(entry) { return entry.title || entry.meta || entry.bullets.length; });
+        return { title: title, entries: entries };
+      }
+      function sourceData() {
+        var meta = {};
+        sourceDocument.querySelectorAll('.meta-row').forEach(function(row) { var label = text(row, '.meta-label'); var value = text(row, '.meta-value'); if (label && value && label !== 'MBTI' && label !== '爱好') meta[label] = value; });
+        var sections = sourceDocument.querySelectorAll('.content > .section');
+        return { name: text(sourceDocument, '.site-name'), contact: '<div class="contact-line"><span>民族：' + esc(meta['民族']) + '</span><span>政治面貌：' + esc(meta['政治面貌']) + '</span></div><div class="contact-line"><span>手机号：' + esc(meta['手机号']) + '</span><span>邮箱：' + esc(meta['邮箱']) + '</span></div>', skills: Array.prototype.map.call(sourceDocument.querySelectorAll('.skill-row'), function(item) { return item.textContent.trim(); }), education: section(sourceDocument.getElementById('education'), '教育经历'), experience: section(sourceDocument.getElementById('experience'), '实习经历'), projects: section(sourceDocument.getElementById('projects'), '项目经历'), research: section(sections[4], '科研经历'), leadership: section(sections[5], '学生职务'), awards: section(sourceDocument.getElementById('awards'), '获奖情况') };
+      }
+      function sectionMarkup(item) {
+        if (!item || !item.entries.length) return '';
+        return '<section class="resume-section"><h3>' + esc(item.title) + '</h3>' + item.entries.map(function(entry) { return '<div class="entry"><div class="entry-heading"><strong>' + esc(entry.title) + '</strong><span>' + esc(entry.meta) + '</span></div>' + (entry.details.length ? '<div class="entry-details">' + entry.details.map(function(detail) { return '<span class="entry-detail">' + esc(detail) + '</span>'; }).join('') + '</div>' : '') + (entry.bullets.length ? '<ul>' + entry.bullets.map(function(bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul>' : '') + '</div>'; }).join('') + '</section>';
+      }
+      function skillsMarkup(skills) {
+        return '<div class="sheet-skills"><div class="skills-row">' + skills.map(function(skill) { return '<span>' + esc(skill) + '</span>'; }).join('') + '</div></div>';
+      }
+      function build() {
+        var data = sourceData();
+        return '<header class="sheet-header"><div class="identity"><h2>' + esc(data.name) + '</h2><div class="contact">' + data.contact + '</div>' + skillsMarkup(data.skills) + '</div><img class="portrait" src="assets/img/蓝底证件照.jpg" alt="证件照"></header>' + '<section class="resume-section summary"><h3>自我评价</h3><p>' + esc(summary.value.trim()) + '</p></section>' + [data.education, data.experience, data.projects, data.research, data.leadership, data.awards].map(sectionMarkup).join('');
+      }
+      function settingValue(name) { var select = document.querySelector('select[name="' + name + '"]'); return select ? select.value : ''; }
+      function updateLabels() { output.portraitSize.textContent = controls.portraitSize.value + ' mm'; }
+      function createPage() {
+        var page = document.createElement('article');
+        var pageContent = document.createElement('div');
+        page.className = 'resume-sheet';
+        pageContent.className = 'sheet-content';
+        pageContent.style.setProperty('--resume-font-size', settingValue('fontSize') + 'pt');
+        pageContent.style.setProperty('--resume-heading-size', settingValue('headingSize') + 'pt');
+        pageContent.style.setProperty('--resume-margin', settingValue('margin') + 'mm');
+        pageContent.style.setProperty('--resume-line-height', settingValue('lineHeight'));
+        pageContent.style.setProperty('--resume-paragraph-gap', settingValue('paragraphGap') + 'pt');
+        pageContent.style.setProperty('--portrait-size', controls.portraitSize.value + 'mm');
+        pageContent.classList.toggle('bold-titles', controls.boldTitles.checked);
+        page.appendChild(pageContent);
+        documentPreview.appendChild(page);
+        return pageContent;
+      }
+      function appendSection(sectionNode, pageContent) {
+        var sectionCopy = sectionNode.cloneNode(false);
+        var heading = sectionNode.querySelector('h3');
+        if (heading) sectionCopy.appendChild(heading.cloneNode(true));
+        pageContent.appendChild(sectionCopy);
+        if (pageContent.scrollHeight > pageContent.clientHeight && pageContent.children.length > 1) {
+          pageContent.removeChild(sectionCopy);
+          pageContent = createPage();
+          sectionCopy = sectionNode.cloneNode(false);
+          if (heading) sectionCopy.appendChild(heading.cloneNode(true));
+          pageContent.appendChild(sectionCopy);
+        }
+        Array.prototype.slice.call(sectionNode.querySelectorAll('.entry')).forEach(function(entry) {
+          sectionCopy.appendChild(entry);
+          if (pageContent.scrollHeight > pageContent.clientHeight && sectionCopy.children.length > 1) {
+            sectionCopy.removeChild(entry);
+            if (!sectionCopy.querySelector('.entry')) {
+              pageContent.removeChild(sectionCopy);
+            }
+            pageContent = createPage();
+            sectionCopy = sectionNode.cloneNode(false);
+            if (heading) sectionCopy.appendChild(heading.cloneNode(true));
+            pageContent.appendChild(sectionCopy);
+            sectionCopy.appendChild(entry);
+          }
+        });
+        return pageContent;
+      }
+      function paginate(markup) {
+        documentPreview.innerHTML = '';
+        var staging = document.createElement('div');
+        staging.innerHTML = markup;
+        var pageContent = createPage();
+        Array.prototype.slice.call(staging.children).forEach(function(node) {
+          if (node.classList.contains('resume-section') && node.querySelector('.entry')) {
+            pageContent = appendSection(node, pageContent);
+            return;
+          }
+          pageContent.appendChild(node);
+          if (pageContent.scrollHeight > pageContent.clientHeight && pageContent.children.length > 1) {
+            pageContent.removeChild(node);
+            pageContent = createPage();
+            pageContent.appendChild(node);
+          }
+        });
+        pageSize.textContent = 'A4 · ' + documentPreview.children.length + ' 页';
+      }
+      function updatePreview() { updateLabels(); if (!summary.value.trim()) { documentPreview.innerHTML = '<article class="resume-sheet"><div class="sheet-content"><div class="empty">请先填写新的自我评价</div></div></article>'; pageSize.textContent = 'A4 · 0 页'; return; } paginate(build()); }
+      function loadSource() { return fetch('index.html').then(function(response) { if (!response.ok) throw new Error('source'); return response.text(); }).then(function(html) { sourceDocument = new DOMParser().parseFromString(html, 'text/html'); app.hidden = false; summary.focus(); }); }
+      summary.addEventListener('input', updatePreview); document.getElementById('previewButton').addEventListener('click', updatePreview); document.querySelectorAll('select[name]').forEach(function(select) { select.addEventListener('change', updatePreview); }); controls.portraitSize.addEventListener('input', updatePreview); controls.boldTitles.addEventListener('change', updatePreview);
+      form.addEventListener('submit', function(event) { event.preventDefault(); if (!summary.value.trim()) { summary.reportValidity(); return; } updatePreview(); if (typeof html2pdf !== 'function') { window.print(); return; } documentPreview.classList.add('pdf-export'); html2pdf().set({ margin: 0, filename: (sourceData().name || 'resume') + '-简历.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2, useCORS: true, backgroundColor: '#ffffff' }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }, pagebreak: { mode: [] } }).from(documentPreview).save().then(function() { documentPreview.classList.remove('pdf-export'); }); });
+      populateSettings();
+      loadSource().catch(function() { error.hidden = false; });
+    })();
+  </script>
+</body>
+</html>

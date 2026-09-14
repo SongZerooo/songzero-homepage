@@ -26,6 +26,10 @@
         <a href="./">Home</a>
       </div>
       <div class="nav-right">
+        <a id="resumeGeneratorToggle" class="resume-generator-trigger" href="resume-generator.html" title="打开简历生成器">
+          <i class="fa-solid fa-file-pdf" aria-hidden="true"></i>
+          <span>生成简历</span>
+        </a>
         <button id="languageToggle" class="theme-toggle" title="切换到英文" aria-label="切换到英文">EN</button>
         <button id="themeToggle" class="theme-toggle" title="Toggle theme" aria-label="Toggle theme">
           <i class="fa-solid fa-moon"></i>
@@ -229,14 +233,14 @@
           <div class="card timeline-item">
             <div class="experience-item">
               <div class="experience-content">
-                <p class="exp-title"><strong>多 Agent 协作的智能无人机任务调度与飞手管理平台</strong></p>
+                <p class="exp-title"><strong>多 Agent 协作的智能无人机任务管理平台</strong></p>
                 <p class="exp-meta">
                   <span>项目角色&nbsp;&nbsp;Agent系统完善</span>
                   <span>2025.11 - 2026.01</span>
                 </p>
                 <ul class="experience-steps">
-                  <li>该项目采用多 Agent 协作架构，通过任务分类理解需求、调度 Agent 匹配飞手、行为分析建立能力模型。核心创新：基于 RAG 的知识问答（集成飞行手册、天气、安全规范），智能飞手匹配（多维度最优配置），可视化任务管理。技术栈：FastAPI + LangChain + FAISS + SQLite，支持API接入本地以及在线LLM。</li>
-                  <li>从需求梳理到系统交付的全流程负责。需求分析阶段：完成产品需求调研，梳理无人机任务分配、飞手调度、飞行计划确认等核心业务流，设计五层分层架构与 Agent 协作机制。RAG 优化阶段：调整文本分块策略（按任务类型/天气/飞手等级），优化 Embedding 向量维度，实现 Reranking 机制。文档编写：负责 Agent 决策流程、RAG 检索机制、系统架构等 Markdown 技术文档编写，确保系统可维护性。</li>
+                  <li>该项目采用多 Agent 协作架构，包含 Task Classification、Consultation、Appointment、User Behavior四类 Agent，实现无人机任务分配、飞手调度及飞行辅助决策。核心功能包括基于 RAG 的知识问答（集成飞行手册、天气信息、安全规范等知识）、智能飞手匹配（综合任务类型、飞手等级、历史表现等维度进行匹配）及任务可视化管理。技术栈：FastAPI + LangChain + FAISS + SQLite，支持接入本地及在线 LLM。</li>
+                  <li>以产品经理角色参与项目从立项调研、需求分析、方案设计、可行性验证、研发推动到落地使用的全流程，梳理核心业务流程，参与设计系统分层架构及四类 Agent 的协作机制，并协调研发推进功能落地；同时独立完成 consultation_agent.py 编写，基于 RAG 实现飞行手册、天气及安全规范等知识的检索与问答，并参与文本分块、Embedding、Reranking 等检索链路优化及相关技术文档编写。</li>
                 </ul>
               </div>
             </div>
