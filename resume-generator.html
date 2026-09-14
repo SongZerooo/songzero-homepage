@@ -266,7 +266,7 @@
         pageSize.textContent = 'A4 · ' + documentPreview.children.length + ' 页';
       }
       function updatePreview() { updateLabels(); if (!summary.value.trim()) { documentPreview.innerHTML = '<article class="resume-sheet"><div class="sheet-content"><div class="empty">请先填写新的自我评价</div></div></article>'; pageSize.textContent = 'A4 · 0 页'; return; } paginate(build()); }
-      function loadSource() { return fetch('index.html').then(function(response) { if (!response.ok) throw new Error('source'); return response.text(); }).then(function(html) { sourceDocument = new DOMParser().parseFromString(html, 'text/html'); app.hidden = false; summary.focus(); }); }
+      function loadSource() { return fetch('index.html').then(function(response) { if (!response.ok) throw new Error('source'); return response.text(); }).then(function(html) { sourceDocument = new DOMParser().parseFromString(html, 'text/html'); var savedContent = localStorage.getItem('songzeroHomepageContent'); if (savedContent) sourceDocument.querySelector('.wrapper').innerHTML = savedContent; app.hidden = false; summary.focus(); }); }
       function downloadWord() {
         if (!summary.value.trim()) { summary.reportValidity(); return; }
         var data = sourceData();

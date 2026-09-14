@@ -169,7 +169,7 @@
               <div class="experience-content">
                 <p class="exp-title"><strong>苏州科技大学</strong></p>
                 <p class="exp-meta edu-meta">
-                  <span>第一批本科</span>
+                  <span>一本</span>
                   <span>2020.09 — 2024.07</span>
                 </p>
                 <div class="edu-detail-grid">
@@ -214,8 +214,8 @@
               <div class="experience-content">
                 <p class="exp-title"><strong>江苏省地质局</strong></p>
                 <p class="exp-meta">
-                  <span>工程测量项目部&nbsp;&nbsp;实习生</span>
-                  <span>2026.02 - 2026.05</span>
+                  <span>工程项目部&nbsp;&nbsp;实习生</span>
+                  <span>2025.09 - 2026.01</span>
                 </p>
                 <ul class="experience-steps">
                   <li>参与地铁隧道结构健康监测项目，负责GNSS监测点周期性观测、数据采集及内业数据处理，开展监测数据质量检查、病害识别与风险评估。</li>
@@ -236,7 +236,7 @@
                 <p class="exp-title"><strong>多 Agent 协作的智能无人机任务管理平台</strong></p>
                 <p class="exp-meta">
                   <span>项目角色&nbsp;&nbsp;Agent系统完善</span>
-                  <span>2025.11 - 2026.01</span>
+                  <span>2026.03 - 2026.05</span>
                 </p>
                 <ul class="experience-steps">
                   <li>该项目采用多 Agent 协作架构，包含 Task Classification、Consultation、Appointment、User Behavior四类 Agent，实现无人机任务分配、飞手调度及飞行辅助决策。核心功能包括基于 RAG 的知识问答（集成飞行手册、天气信息、安全规范等知识）、智能飞手匹配（综合任务类型、飞手等级、历史表现等维度进行匹配）及任务可视化管理。技术栈：FastAPI + LangChain + FAISS + SQLite，支持接入本地及在线 LLM。</li>
@@ -358,6 +358,29 @@
       const languageToggle = document.getElementById('languageToggle');
       const themeToggle = document.getElementById('themeToggle');
       const icon = themeToggle.querySelector('i');
+      const savedHomepage = localStorage.getItem('songzeroHomepageContent');
+      if (savedHomepage) {
+        try {
+          document.querySelector('.wrapper').innerHTML = savedHomepage;
+        } catch (error) {
+          localStorage.removeItem('songzeroHomepageContent');
+        }
+      }
+      const avatar = document.querySelector('.image.avatar');
+      let avatarClicks = 0;
+      let avatarClickTimer;
+      avatar.setAttribute('role', 'button');
+      avatar.setAttribute('tabindex', '0');
+      avatar.setAttribute('title', '连续点击三次进入编辑页面');
+      avatar.addEventListener('click', function() {
+        avatarClicks += 1;
+        if (avatarClicks === 3) {
+          window.location.href = 'editor.html';
+          return;
+        }
+        window.clearTimeout(avatarClickTimer);
+        avatarClickTimer = window.setTimeout(function() { avatarClicks = 0; }, 500);
+      });
 
       const englishTranslations = {
         '#about h2': ['About Me'],
