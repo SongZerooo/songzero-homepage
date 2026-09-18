@@ -7,6 +7,15 @@
   <title>宋泽荣 - Homepage</title>
   <meta name="description" content="宋泽荣的个人主页，记录研究、学习与项目经历。">
   <meta name="keywords" content="个人主页, 学术主页, 研究者, 学生, 个人网站">
+  <meta name="theme-color" content="#f3f5f8">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="宋泽荣 - Homepage">
+  <meta property="og:description" content="宋泽荣的个人主页，记录研究、学习与项目经历。">
+  <meta property="og:image" content="assets/img/蓝底证件照2.jpg">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="宋泽荣 - Homepage">
+  <meta name="twitter:description" content="宋泽荣的个人主页，记录研究、学习与项目经历。">
+  <meta name="twitter:image" content="assets/img/蓝底证件照2.jpg">
   <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,7 +51,7 @@
     <header class="sidebar">
       <div class="profile-card">
         <a class="image avatar">
-          <img src="assets\img\蓝底证件照2.jpg" alt="Profile avatar">
+          <img src="assets/img/蓝底证件照2.jpg" alt="宋泽荣的证件照">
         </a>
 
         <h1 class="site-name">宋泽荣</h1>
@@ -78,7 +87,6 @@
             <span class="meta-value">街舞，攀岩，户外徒步</span>
           </div>
         </div>
-
         <div class="skill-card">
           <div class="skill-card-title">职业技能</div>
           <div class="skill-list">
@@ -140,7 +148,7 @@
         <div class="section-body">
           <div class="card timeline-item">
             <div class="experience-item">
-              <img src="assets\img\河海大学校徽.png" alt="Institution logo" class="institution-logo">
+              <img src="assets/img/河海大学校徽.png" alt="河海大学校徽" class="institution-logo">
               <div class="experience-content">
                 <p class="exp-title"><strong>河海大学</strong></p>
                 <p class="exp-meta edu-meta">
@@ -165,11 +173,11 @@
 
           <div class="card timeline-item">
             <div class="experience-item">
-              <img src="assets\img\苏科大校徽.png" alt="Institution logo" class="institution-logo">
+              <img src="assets/img/苏科大校徽.png" alt="苏州科技大学校徽" class="institution-logo">
               <div class="experience-content">
                 <p class="exp-title"><strong>苏州科技大学</strong></p>
                 <p class="exp-meta edu-meta">
-                  <span>一本</span>
+                  <span>“双一流”</span>
                   <span>2020.09 — 2024.07</span>
                 </p>
                 <div class="edu-detail-grid">
@@ -248,7 +256,7 @@
         </div>
       </div>
 
-      <div class="section" id="publications">
+      <div class="section" id="research">
         <h2 class="section-title">科研经历</h2>
         <div class="section-body">
           <div class="card timeline-item">
@@ -269,7 +277,7 @@
         </div>
       </div>
 
-            <div class="section" id="publications">
+            <div class="section" id="leadership">
         <h2 class="section-title">学生职务</h2>
         <div class="section-body">
           <div class="card timeline-item">
@@ -350,6 +358,9 @@
         &copy; 2026 宋泽荣. All rights reserved.
       </p>
     </footer>
+    <button id="backToTop" class="back-to-top" type="button" aria-label="返回顶部" title="返回顶部">
+      <i class="fa-solid fa-arrow-up" aria-hidden="true"></i>
+    </button>
   </div>
 
   <script src="assets/js/scale.fix.js"></script>
@@ -366,6 +377,17 @@
           localStorage.removeItem('songzeroHomepageContent');
         }
       }
+      function ensureHomepageStructure() {
+        var sections = document.querySelectorAll('.content > .section');
+        if (sections[4]) sections[4].id = 'research';
+        if (sections[5]) sections[5].id = 'leadership';
+        document.querySelectorAll('#privacyToggle').forEach(function(control) { control.remove(); });
+        document.querySelectorAll('img[src]').forEach(function(image) {
+          image.setAttribute('src', image.getAttribute('src').replace(/\\/g, '/'));
+        });
+      }
+      ensureHomepageStructure();
+      const backToTop = document.getElementById('backToTop');
       const avatar = document.querySelector('.image.avatar');
       let avatarClicks = 0;
       let avatarClickTimer;
@@ -381,6 +403,22 @@
         window.clearTimeout(avatarClickTimer);
         avatarClickTimer = window.setTimeout(function() { avatarClicks = 0; }, 500);
       });
+      avatar.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          avatar.click();
+        }
+      });
+
+      function updateBackToTop() {
+        backToTop.classList.toggle('is-visible', window.scrollY > 160);
+      }
+
+      window.addEventListener('scroll', updateBackToTop, { passive: true });
+      backToTop.addEventListener('click', function() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      updateBackToTop();
 
       const englishTranslations = {
         '#about h2': ['About Me'],
@@ -417,16 +455,16 @@
           'The project employs a multi-Agent collaboration architecture, using task classification to understand requirements, scheduling Agents to match pilots, and behavior analysis to establish capability models. Core innovations: RAG-based knowledge QA (integrating flight manuals, weather, safety regulations), intelligent pilot matching (multi-dimensional optimal configuration), and visualized task management. Tech stack: FastAPI + LangChain + FAISS + SQLite, supporting API integration with both local and online LLMs.',
           'Responsible for the full workflow from requirements analysis to system delivery. Requirements analysis phase: completed product requirement research, streamlined drone task allocation, pilot scheduling, and flight plan confirmation workflows, designed a five-layer hierarchical architecture and multi-Agent collaboration mechanism. RAG optimization phase: adjusted text chunking strategy (by task type/weather/pilot level), optimized embedding vector dimensions, and implemented reranking mechanism. Documentation: responsible for writing Markdown technical documentation for Agent decision workflows, RAG retrieval mechanisms, and system architecture to ensure system maintainability.'
         ],
-        '#publications h2': ['Research Experience'],
-        '#publications .exp-meta': ['Under review at Water Resources Management', 'Mar 2025 - Dec 2025'],
-        '#publications .experience-steps li': [
+        '#research h2': ['Research Experience'],
+        '#research .exp-meta': ['Under review at Water Resources Management', 'Mar 2025 - Dec 2025'],
+        '#research .experience-steps li': [
           'Conducted modeling, analysis, and fusion research using GNSS and multi-source remote sensing data, including data processing, technical validation, and algorithm improvement.',
           'Designed and implemented the full research workflow, including task breakdown, technical planning, experiment design, coding, and result validation. Used Claude for prompt coding and MATLAB and Python for multi-source data processing, metric calculation, model construction, and result analysis.'
         ],
-        '.content > .section:nth-child(6) h2': ['Student Leadership'],
-        '.content > .section:nth-child(6) .exp-title': ['Vice President, School Student Union'],
-        '.content > .section:nth-child(6) .exp-meta': ['Sep 2021 - Jun 2022'],
-        '.content > .section:nth-child(6) .experience-steps li': [
+        '#leadership h2': ['Student Leadership'],
+        '#leadership .exp-title': ['Vice President, School Student Union'],
+        '#leadership .exp-meta': ['Sep 2021 - Jun 2022'],
+        '#leadership .experience-steps li': [
           'Organized regular project meetings, coordinated communication across departments, collected 13 process improvement suggestions, and helped implement them. Coordinated three large-scale events with more than 500 total participants, covering requirements analysis, planning, process design, resource coordination, SOP development, and delivery.',
           'Led a social practice project focused on revisiting the history of Party building and tracing its red cultural themes. Defined objectives, decomposed tasks, developed execution and acceptance criteria, coordinated members, and completed survey data consolidation, project acceptance, and results presentation.'
         ],

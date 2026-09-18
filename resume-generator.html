@@ -174,9 +174,17 @@
             var degree = details.find(function(detail) { return detail.indexOf('学历：') === 0; });
             var gpa = details.find(function(detail) { return detail.indexOf('GPA：') === 0; });
             var ranking = details.find(function(detail) { return detail.indexOf('排名：') === 0; });
+            var location = details.find(function(detail) { return detail.indexOf('所在地：') === 0; });
+            var institutionLevel = metaNodes.length ? metaNodes[0].querySelector('span') : null;
+            var entryTitleText = entryTitle;
+            var institutionLevelText = institutionLevel ? institutionLevel.textContent.trim() : '';
+            var locationText = location ? location.replace('所在地：', '').replace(/\s+/g, '') : '';
+            entryTitle = degree ? degree.replace('学历：', '').replace('硕士研究生', '硕士').replace('学士', '本科') : '';
+            entryTitle += entryTitle && entryTitleText ? '　' : '';
+            entryTitle += entryTitleText;
+            entryTitle += institutionLevelText ? '　' + institutionLevelText : '';
             entryTitle += major ? '　' + major.replace('专业：', '') : '';
-            entryTitle += degree ? '　' + degree.replace('学历：', '') : '';
-            entryMeta = [gpa, ranking, metaNodes.length ? metaNodes[0].querySelectorAll('span')[1] && metaNodes[0].querySelectorAll('span')[1].textContent.trim() : ''].filter(Boolean).join('　');
+            entryMeta = [gpa, ranking, locationText, metaNodes.length ? metaNodes[0].querySelectorAll('span')[1] && metaNodes[0].querySelectorAll('span')[1].textContent.trim() : ''].filter(Boolean).join('　');
             details = [];
           }
           return { title: entryTitle, meta: entryMeta, details: details, bullets: Array.prototype.map.call(item.querySelectorAll('.experience-steps li'), function(li) { return li.textContent.trim(); }) };
@@ -186,8 +194,7 @@
       function sourceData() {
         var meta = {};
         sourceDocument.querySelectorAll('.meta-row').forEach(function(row) { var label = text(row, '.meta-label'); var value = text(row, '.meta-value'); if (label && value && label !== 'MBTI' && label !== '爱好') meta[label] = value; });
-        var sections = sourceDocument.querySelectorAll('.content > .section');
-        return { name: text(sourceDocument, '.site-name'), contact: '<div class="contact-line"><span>民族：' + esc(meta['民族']) + '</span><span>政治面貌：' + esc(meta['政治面貌']) + '</span></div><div class="contact-line"><span>手机号：' + esc(meta['手机号']) + '</span><span>邮箱：' + esc(meta['邮箱']) + '</span></div>', skills: Array.prototype.map.call(sourceDocument.querySelectorAll('.skill-row'), function(item) { return item.textContent.trim(); }), education: section(sourceDocument.getElementById('education'), '教育经历'), experience: section(sourceDocument.getElementById('experience'), '实习经历'), projects: section(sourceDocument.getElementById('projects'), '项目经历'), research: section(sections[4], '科研经历'), leadership: section(sections[5], '学生职务'), awards: section(sourceDocument.getElementById('awards'), '获奖情况') };
+        return { name: text(sourceDocument, '.site-name'), contact: '<div class="contact-line"><span>民族：' + esc(meta['民族']) + '</span><span>政治面貌：' + esc(meta['政治面貌']) + '</span></div><div class="contact-line"><span>手机号：' + esc(meta['手机号']) + '</span><span>邮箱：' + esc(meta['邮箱']) + '</span></div>', skills: Array.prototype.map.call(sourceDocument.querySelectorAll('.skill-row'), function(item) { return item.textContent.trim(); }), education: section(sourceDocument.getElementById('education'), '教育经历'), experience: section(sourceDocument.getElementById('experience'), '实习经历'), projects: section(sourceDocument.getElementById('projects'), '项目经历'), research: section(sourceDocument.getElementById('research'), '科研经历'), leadership: section(sourceDocument.getElementById('leadership'), '学生职务'), awards: section(sourceDocument.getElementById('awards'), '获奖情况') };
       }
       function sectionMarkup(item) {
         if (!item || !item.entries.length) return '';

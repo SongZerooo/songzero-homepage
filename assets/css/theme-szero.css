@@ -547,6 +547,38 @@ body.theme-szero .site-footer p {
   line-height: var(--body-line-height);
 }
 
+body.theme-szero .back-to-top {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 900;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid var(--szero-border);
+  border-radius: 50%;
+  background: var(--szero-social-bg);
+  color: var(--szero-text);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity .2s ease, transform .2s ease, background-color .2s ease;
+}
+
+body.theme-szero .back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+body.theme-szero .back-to-top:hover,
+body.theme-szero .back-to-top:focus-visible {
+  background: var(--szero-accent);
+  color: var(--szero-bg);
+}
+
 body.theme-szero h1,
 body.theme-szero h2,
 body.theme-szero h3,
@@ -619,6 +651,11 @@ body.theme-szero strong {
   body.theme-szero .institution-logo {
     width: 44px;
     height: 44px;
+  }
+
+  body.theme-szero .back-to-top {
+    right: 16px;
+    bottom: 16px;
   }
 
 }
