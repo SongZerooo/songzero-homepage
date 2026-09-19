@@ -159,7 +159,10 @@
           var awardEntries = [];
           root.querySelectorAll('.exp-meta').forEach(function(metaNode) {
             var spans = metaNode.querySelectorAll('span');
-            awardEntries.push({ title: spans[0] ? spans[0].textContent.trim() : metaNode.textContent.trim(), meta: spans[1] ? spans[1].textContent.trim() : '', details: [], bullets: [] });
+            var categoryNode = metaNode.closest('.timeline-item').querySelector('.exp-title');
+            var category = categoryNode ? categoryNode.textContent.trim() : '';
+            var award = spans[0] ? spans[0].textContent.trim() : metaNode.textContent.trim();
+            awardEntries.push({ title: [category, award].filter(Boolean).join('　'), meta: spans[1] ? spans[1].textContent.trim() : '', details: [], bullets: [] });
           });
           return { title: title, entries: awardEntries };
         }
@@ -169,6 +172,17 @@
           if (!details.length) details = metaNodes.slice(1).map(function(meta) { return meta.textContent.trim(); });
           var entryTitle = text(item, '.exp-title');
           var entryMeta = metaNodes.length ? metaNodes[0].textContent.trim() : '';
+          var entryRole = '';
+          if ((title === '项目经历' || title === '科研经历') && metaNodes.length) {
+            var firstMetaSpan = metaNodes[0].querySelector('span');
+            if (firstMetaSpan && firstMetaSpan.textContent.trim().indexOf('项目角色') === 0) {
+              entryRole = firstMetaSpan.textContent.trim().replace(/^项目角色[\s\u00a0]*/, '');
+              entryMeta = metaNodes[0].querySelectorAll('span').length > 1
+                ? Array.prototype.map.call(metaNodes[0].querySelectorAll('span'), function(span) { return span.textContent.trim(); }).slice(1).join('　')
+                : '';
+              details = metaNodes.slice(1).map(function(meta) { return meta.textContent.trim(); });
+            }
+          }
           if (title === '教育经历') {
             var major = details.find(function(detail) { return detail.indexOf('专业：') === 0; });
             var degree = details.find(function(detail) { return detail.indexOf('学历：') === 0; });
@@ -187,18 +201,18 @@
             entryMeta = [gpa, ranking, locationText, metaNodes.length ? metaNodes[0].querySelectorAll('span')[1] && metaNodes[0].querySelectorAll('span')[1].textContent.trim() : ''].filter(Boolean).join('　');
             details = [];
           }
-          return { title: entryTitle, meta: entryMeta, details: details, bullets: Array.prototype.map.call(item.querySelectorAll('.experience-steps li'), function(li) { return li.textContent.trim(); }) };
+          return { title: entryTitle, meta: entryMeta, role: entryRole, details: details, bullets: Array.prototype.map.call(item.querySelectorAll('.experience-steps li'), function(li) { return li.textContent.trim(); }) };
         }).filter(function(entry) { return entry.title || entry.meta || entry.bullets.length; });
         return { title: title, entries: entries };
       }
       function sourceData() {
         var meta = {};
         sourceDocument.querySelectorAll('.meta-row').forEach(function(row) { var label = text(row, '.meta-label'); var value = text(row, '.meta-value'); if (label && value && label !== 'MBTI' && label !== '爱好') meta[label] = value; });
-        return { name: text(sourceDocument, '.site-name'), contact: '<div class="contact-line"><span>民族：' + esc(meta['民族']) + '</span><span>政治面貌：' + esc(meta['政治面貌']) + '</span></div><div class="contact-line"><span>手机号：' + esc(meta['手机号']) + '</span><span>邮箱：' + esc(meta['邮箱']) + '</span></div>', skills: Array.prototype.map.call(sourceDocument.querySelectorAll('.skill-row'), function(item) { return item.textContent.trim(); }), education: section(sourceDocument.getElementById('education'), '教育经历'), experience: section(sourceDocument.getElementById('experience'), '实习经历'), projects: section(sourceDocument.getElementById('projects'), '项目经历'), research: section(sourceDocument.getElementById('research'), '科研经历'), leadership: section(sourceDocument.getElementById('leadership'), '学生职务'), awards: section(sourceDocument.getElementById('awards'), '获奖情况') };
+        return { name: text(sourceDocument, '.site-name'), contact: '<div class="contact-line"><span>民族：' + esc(meta['民族']) + '</span><span>政治面貌：' + esc(meta['政治面貌']) + '</span></div><div class="contact-line"><span>手机号：' + esc(meta['手机号']) + '</span><span>微信号：' + esc(meta['微信号']) + '</span><span>邮箱：' + esc(meta['邮箱']) + '</span></div>', skills: Array.prototype.map.call(sourceDocument.querySelectorAll('.skill-row'), function(item) { return item.textContent.trim(); }), education: section(sourceDocument.getElementById('education'), '教育经历'), experience: section(sourceDocument.getElementById('experience'), '实习经历'), projects: section(sourceDocument.getElementById('projects'), '项目经历'), research: section(sourceDocument.getElementById('research'), '科研经历'), leadership: section(sourceDocument.getElementById('leadership'), '学生职务'), awards: section(sourceDocument.getElementById('awards'), '获奖情况') };
       }
       function sectionMarkup(item) {
         if (!item || !item.entries.length) return '';
-        return '<section class="resume-section"><h3>' + esc(item.title) + '</h3>' + item.entries.map(function(entry) { return '<div class="entry"><div class="entry-heading"><strong>' + esc(entry.title) + '</strong><span>' + esc(entry.meta) + '</span></div>' + (entry.details.length ? '<div class="entry-details">' + entry.details.map(function(detail) { return '<span class="entry-detail">' + esc(detail) + '</span>'; }).join('') + '</div>' : '') + (entry.bullets.length ? '<ul>' + entry.bullets.map(function(bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul>' : '') + '</div>'; }).join('') + '</section>';
+        return '<section class="resume-section"><h3>' + esc(item.title) + '</h3>' + item.entries.map(function(entry) { var entryMeta = [entry.role, entry.meta].filter(Boolean).join('　'); return '<div class="entry"><div class="entry-heading"><strong>' + esc(entry.title) + '</strong><span>' + esc(entryMeta) + '</span></div>' + (entry.details.length ? '<div class="entry-details">' + entry.details.map(function(detail) { return '<span class="entry-detail">' + esc(detail) + '</span>'; }).join('') + '</div>' : '') + (entry.bullets.length ? '<ul>' + entry.bullets.map(function(bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul>' : '') + '</div>'; }).join('') + '</section>';
       }
       function skillsMarkup(skills) {
         return '<div class="sheet-skills"><div class="skills-row">' + skills.map(function(skill) { return '<span>' + esc(skill) + '</span>'; }).join('') + '</div></div>';
@@ -285,8 +299,9 @@
           if (!item || !item.entries.length) return;
           markup += '<h2>' + esc(item.title) + '</h2>';
           item.entries.forEach(function(entry) {
+            var entryMeta = [entry.role, entry.meta].filter(Boolean).join('　');
             markup += '<h3>' + esc(entry.title) + '</h3>';
-            if (entry.meta) markup += '<p>' + esc(entry.meta) + '</p>';
+            if (entryMeta) markup += '<p>' + esc(entryMeta) + '</p>';
             entry.details.forEach(function(detail) { markup += '<p>' + esc(detail) + '</p>'; });
             if (entry.bullets.length) markup += '<ul>' + entry.bullets.map(function(bullet) { return '<li>' + esc(bullet) + '</li>'; }).join('') + '</ul>';
           });
