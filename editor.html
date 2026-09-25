@@ -53,7 +53,7 @@
   <header class="editor-bar">
     <div>
       <h1 class="editor-title">编辑个人主页</h1>
-      <p class="editor-help">点击页面中的文字直接修改，保存后主页和简历生成器都会使用新内容。</p>
+      <p class="editor-help">点击页面中的文字直接修改，保存后下载更新后的 profile.json。</p>
     </div>
     <div class="editor-actions">
       <button class="primary" type="button" id="saveButton">保存修改</button>
@@ -64,19 +64,21 @@
   <p class="editor-status" id="editorStatus" role="status"></p>
   <div class="save-modal" id="saveModal" hidden role="dialog" aria-modal="true" aria-labelledby="saveModalTitle">
     <div class="save-modal-card">
-      <h2 id="saveModalTitle">修改已保存</h2>
-      <p>返回主页后即可看到最新内容。</p>
+      <h2 id="saveModalTitle">profile.json 已生成</h2>
+      <p>请用下载的文件替换项目根目录中的 profile.json。</p>
       <button type="button" id="closeSaveModal">知道了</button>
     </div>
   </div>
   <main id="editorSurface" contenteditable="true" spellcheck="true" aria-label="个人主页编辑区域"></main>
 
+  <script src="assets/js/profile.js"></script>
+  <script src="assets/js/homepage-renderer.js"></script>
   <script>
     (function() {
-      var storageKey = 'songzeroHomepageContent';
       var surface = document.getElementById('editorSurface');
       var status = document.getElementById('editorStatus');
       var saveModal = document.getElementById('saveModal');
+      var profile;
       var dragState = null;
 
       function showStatus(message, isError) {
@@ -300,32 +302,77 @@
         if (content) content.appendChild(addControl('新增章节', addNewSection));
       }
 
-      function serializableContent() {
-        var copy = surface.cloneNode(true);
-        copy.querySelectorAll('.editor-add-control, .editor-delete-control, .editor-drag-handle').forEach(function(control) { control.remove(); });
-        copy.querySelectorAll('[contenteditable]').forEach(function(element) { element.removeAttribute('contenteditable'); });
-        return copy.innerHTML;
+      function readEntry(item, source) {
+        var details = Array.prototype.map.call(item.querySelectorAll('.edu-item'), function(detail) { return detail.textContent.trim(); });
+        var tags = Array.prototype.map.call(item.querySelectorAll('.exp-meta > span'), function(tag) { return tag.textContent.trim(); });
+        if (source.type === 'awards') {
+          return { title: item.querySelector('.exp-title') ? item.querySelector('.exp-title').textContent.trim() : '', awards: Array.prototype.map.call(item.querySelectorAll('.award-group .exp-meta'), function(award) { return Array.prototype.map.call(award.querySelectorAll('span'), function(part) { return part.textContent.trim(); }); }) };
+        }
+        var entry = { title: item.querySelector('.exp-title') ? item.querySelector('.exp-title').textContent.trim() : '', tags: tags, details: details, bullets: Array.prototype.map.call(item.querySelectorAll('.experience-steps li'), function(bullet) { return bullet.textContent.trim(); }) };
+        var logo = item.querySelector('.institution-logo');
+        if (logo) entry.institutionLogo = logo.getAttribute('src');
+        return entry;
+      }
+
+      function versionItems(value, version) {
+        if (Array.isArray(value)) return value.map(function(item) { return typeof item === 'string' ? item : item[version] || item.a || ''; });
+        return value && (value[version] || value.a) || [];
+      }
+
+      function serializableProfile() {
+        var next = JSON.parse(JSON.stringify(profile));
+        var basic = next.basic;
+        basic.name = surface.querySelector('.site-name') ? surface.querySelector('.site-name').textContent.trim() : basic.name;
+        basic.alias = surface.querySelector('.site-name-sub') ? surface.querySelector('.site-name-sub').textContent.trim() : basic.alias;
+        var values = {};
+        surface.querySelectorAll('.meta-row').forEach(function(row) { values[row.querySelector('.meta-label').textContent.trim()] = row.querySelector('.meta-value').textContent.trim(); });
+        basic.email = values['邮箱'] || basic.email; basic.phone = values['手机号'] || basic.phone; basic.wechat = values['微信号'] || basic.wechat; basic.ethnicity = values['民族'] || basic.ethnicity; basic.politicalStatus = values['政治面貌'] || basic.politicalStatus; basic.mbti = values['MBTI'] || basic.mbti; basic.interests = values['爱好'] || basic.interests;
+        next.about.intro = surface.querySelector('.about-intro') ? surface.querySelector('.about-intro').textContent.trim() : next.about.intro;
+        var aboutDetails = Array.prototype.map.call(surface.querySelectorAll('.about-detail'), function(detail) { return detail.textContent.trim(); });
+        next.about.details = { a: aboutDetails, b: (profile.about.details.b || aboutDetails).slice(), c: (profile.about.details.c || aboutDetails).slice() };
+        next.skills = Array.prototype.map.call(surface.querySelectorAll('.skill-row'), function(row) { return { name: row.querySelector('.skill-name').textContent.trim(), level: row.querySelector('.skill-level').textContent.trim() }; });
+        next.sections = Array.prototype.map.call(surface.querySelectorAll('.content > .section'), function(section) {
+          var source = next.sections.find(function(item) { return item.id === section.id; }) || { id: section.id, type: 'experience', entries: [] };
+          var originalEntries = source.entries || [];
+          source.title = section.querySelector('.section-title').textContent.trim();
+          source.entries = Array.prototype.map.call(section.querySelectorAll('.timeline-item'), function(item, index) {
+            var original = originalEntries[index] || {};
+            var nextEntry = readEntry(item, source);
+            if (source.type !== 'awards') {
+              var originalBullets = original.bullets || {};
+              nextEntry.bullets = { a: nextEntry.bullets, b: originalBullets.b || nextEntry.bullets, c: originalBullets.c || nextEntry.bullets };
+            }
+            return nextEntry;
+          });
+          return source;
+        });
+        next.meta.updatedAt = new Date().toISOString().slice(0, 10);
+        return next;
+      }
+
+      function downloadProfile() {
+        var blob = new Blob([JSON.stringify(serializableProfile(), null, 2)], { type: 'application/json;charset=utf-8' });
+        var link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'profile.json';
+        link.click();
+        URL.revokeObjectURL(link.href);
       }
 
       function loadHomepage() {
-        return fetch('index.html').then(function(response) {
-          if (!response.ok) throw new Error('无法读取主页');
-          return response.text();
-        }).then(function(html) {
-          var source = new DOMParser().parseFromString(html, 'text/html');
-          var savedContent = localStorage.getItem(storageKey);
-          surface.innerHTML = savedContent || source.querySelector('.wrapper').innerHTML;
+        return SongZeroProfile.load().then(function(data) {
+          profile = data;
+          surface.innerHTML = window.SongZeroHomepage.render(profile, 'zh');
           addEditorControls();
-          surface.querySelectorAll('a').forEach(function(link) {
-            link.addEventListener('click', function(event) { event.preventDefault(); });
-          });
+          surface.querySelectorAll('a').forEach(function(link) { link.addEventListener('click', function(event) { event.preventDefault(); }); });
         }).catch(function() {
           showStatus('无法读取主页，请通过本地服务器打开编辑页面。', true);
         });
       }
 
       document.getElementById('saveButton').addEventListener('click', function() {
-        localStorage.setItem(storageKey, serializableContent());
+        downloadProfile();
+        showStatus('已下载新的 profile.json，请用它替换项目根目录中的同名文件。', false);
         showSaveModal();
       });
 
@@ -334,9 +381,8 @@
       });
 
       document.getElementById('resetButton').addEventListener('click', function() {
-        if (!window.confirm('确定恢复主页默认内容吗？当前保存的修改会被删除。')) return;
-        localStorage.removeItem(storageKey);
-        loadHomepage().then(function() { showStatus('已恢复默认内容，尚未保存。', false); });
+        if (!window.confirm('确定放弃当前编辑内容并重新读取 profile.json 吗？')) return;
+        loadHomepage().then(function() { showStatus('已重新读取 profile.json，尚未保存。', false); });
       });
 
       loadHomepage();

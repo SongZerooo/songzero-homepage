@@ -90,12 +90,17 @@
 </head>
 <body>
   <header class="app-header">
-    <div><h1>简历生成器</h1><p>读取主页信息，自定义排版后导出 PDF 或 Word</p></div>
+    <div><h1>简历生成器</h1><p>读取 profile.json，自定义排版后导出 PDF 或 Word</p></div>
     <a class="back-button" href="index.html"><i class="fa-solid fa-arrow-left" aria-hidden="true"></i>返回个人主页</a>
   </header>
   <main class="app-layout" id="app" hidden>
     <form class="settings" id="resumeSettings">
-      <label class="field"><span>新的自我评价 <b>*</b></span><textarea id="resumeSummary" rows="5" required placeholder="请输入一份新的、比网页版本更完整的自我评价"></textarea></label>
+      <div class="settings-heading">内容版本</div>
+      <label class="field"><span>自我评价详情</span><select data-version-section="about"><option value="a">A · 个人主页口语化</option><option value="b">B · 互联网 AI 方向</option><option value="c">C · 专业技术方向</option></select></label>
+      <label class="field"><span>实习经历 bullets</span><select data-version-section="experience"><option value="a">A · 互联网 AI 方向</option><option value="b">B · 专业技术方向</option></select></label>
+      <label class="field"><span>项目经历 bullets</span><select data-version-section="projects"><option value="a">A · 互联网 AI 方向</option><option value="b">B · 专业技术方向</option></select></label>
+      <label class="field"><span>科研经历 bullets</span><select data-version-section="research"><option value="a">A · 互联网 AI 方向</option><option value="b">B · 专业技术方向</option></select></label>
+      <label class="field"><span>学生职务 bullets</span><select data-version-section="leadership"><option value="a">A · 互联网 AI 方向</option></select></label>
       <div class="settings-heading">版式设置</div>
       <label class="field"><span>正文字号</span><select name="fontSize" id="fontSize" data-start="3" data-end="30" data-step="0.5" data-unit="pt"></select></label>
       <label class="field"><span>标题字号</span><select name="headingSize" id="headingSize" data-start="3" data-end="30" data-step="0.5" data-unit="pt"></select></label>
@@ -108,21 +113,21 @@
     </form>
     <section class="preview-panel">
       <div class="preview-toolbar"><span>预览</span><span id="pageSize">A4 · 0 页</span></div>
-      <div class="preview-viewport"><div class="resume-document" id="resumeDocument"><article class="resume-sheet"><div class="sheet-content"><div class="empty">请先填写新的自我评价</div></div></article></div></div>
+      <div class="preview-viewport"><div class="resume-document" id="resumeDocument"><article class="resume-sheet"><div class="sheet-content"><div class="empty">正在读取 profile.json...</div></div></article></div></div>
     </section>
   </main>
   <div class="error" id="error" hidden>无法读取主页信息。请通过本地服务器打开此页面，例如 `python -m http.server 8000`，再访问 `/resume-generator.html`。</div>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="assets/js/profile.js"></script>
   <script>
     (function() {
       var app = document.getElementById('app');
       var error = document.getElementById('error');
       var form = document.getElementById('resumeSettings');
-      var summary = document.getElementById('resumeSummary');
       var documentPreview = document.getElementById('resumeDocument');
       var pageSize = document.getElementById('pageSize');
-      var sourceDocument;
+      var profile;
       var controls = {
         portraitSize: document.getElementById('portraitSize'), boldTitles: document.getElementById('boldTitles')
       };
@@ -205,10 +210,41 @@
         }).filter(function(entry) { return entry.title || entry.meta || entry.bullets.length; });
         return { title: title, entries: entries };
       }
+      function sectionData(id) {
+        var source = SongZeroProfile.section(profile, id);
+        if (!source) return { title: '', entries: [] };
+        var version = source.type === 'education' ? null : selectedVersion(id);
+        return { title: source.title, entries: source.entries.map(function(entry) {
+          var details = source.type === 'education' ? (entry.details || []) : versionItems(entry.details, version);
+          var title = entry.title;
+          var meta = (entry.tags || []).join('　');
+          if (source.type === 'education') {
+            var degree = details.find(function(detail) { return detail.indexOf('学历：') === 0; });
+            var major = details.find(function(detail) { return detail.indexOf('专业：') === 0; });
+            title = [degree && degree.replace('学历：', '').replace('硕士研究生', '硕士').replace('学士', '本科'), title, major && major.replace('专业：', '')].filter(Boolean).join('　');
+            details = details.filter(function(detail) { return detail.indexOf('学历：') !== 0 && detail.indexOf('专业：') !== 0; });
+          }
+          if (source.type === 'awards') {
+            return { title: entry.title, meta: '', role: '', details: [], bullets: (entry.awards || []).map(function(award) { return award.join('　'); }) };
+          }
+          return { title: title, meta: meta, role: '', details: details, bullets: versionItems(entry.bullets, version) };
+        }) };
+      }
+      function selectedVersion(id) {
+        var select = document.querySelector('[data-version-section="' + id + '"]');
+        return select ? select.value : 'a';
+      }
+      function versionItems(value, version) {
+        if (Array.isArray(value)) return value.map(function(item) { return typeof item === 'string' ? item : item[version] || item.a || ''; });
+        return value && (value[version] || value.a) || [];
+      }
+      function aboutSummary() {
+        return versionItems(profile.about.details, selectedVersion('about')).join('\n\n');
+      }
+      function summaryValue() { return profile && profile.about ? aboutSummary() : ''; }
       function sourceData() {
-        var meta = {};
-        sourceDocument.querySelectorAll('.meta-row').forEach(function(row) { var label = text(row, '.meta-label'); var value = text(row, '.meta-value'); if (label && value && label !== 'MBTI' && label !== '爱好') meta[label] = value; });
-        return { name: text(sourceDocument, '.site-name'), contact: '<div class="contact-line"><span>民族：' + esc(meta['民族']) + '</span><span>政治面貌：' + esc(meta['政治面貌']) + '</span></div><div class="contact-line"><span>手机号：' + esc(meta['手机号']) + '</span><span>微信号：' + esc(meta['微信号']) + '</span><span>邮箱：' + esc(meta['邮箱']) + '</span></div>', skills: Array.prototype.map.call(sourceDocument.querySelectorAll('.skill-row'), function(item) { return item.textContent.trim(); }), education: section(sourceDocument.getElementById('education'), '教育经历'), experience: section(sourceDocument.getElementById('experience'), '实习经历'), projects: section(sourceDocument.getElementById('projects'), '项目经历'), research: section(sourceDocument.getElementById('research'), '科研经历'), leadership: section(sourceDocument.getElementById('leadership'), '学生职务'), awards: section(sourceDocument.getElementById('awards'), '获奖情况') };
+        var basic = profile.basic;
+        return { name: basic.name, portrait: basic.resumePortrait || basic.avatar, contact: '<div class="contact-line"><span>民族：' + esc(basic.ethnicity) + '</span><span>政治面貌：' + esc(basic.politicalStatus) + '</span></div><div class="contact-line"><span>手机号：' + esc(basic.phone) + '</span><span>微信号：' + esc(basic.wechat) + '</span><span>邮箱：' + esc(basic.email) + '</span></div>', skills: profile.skills.map(function(skill) { return skill.name + ' ' + skill.level; }), education: sectionData('education'), experience: sectionData('experience'), projects: sectionData('projects'), research: sectionData('research'), leadership: sectionData('leadership'), awards: sectionData('awards') };
       }
       function sectionMarkup(item) {
         if (!item || !item.entries.length) return '';
@@ -219,7 +255,7 @@
       }
       function build() {
         var data = sourceData();
-        return '<header class="sheet-header"><div class="identity"><h2>' + esc(data.name) + '</h2><div class="contact">' + data.contact + '</div>' + skillsMarkup(data.skills) + '</div><img class="portrait" src="assets/img/蓝底证件照.jpg" alt="证件照"></header>' + '<section class="resume-section summary"><h3>自我评价</h3><p>' + esc(summary.value.trim()) + '</p></section>' + [data.education, data.experience, data.projects, data.research, data.leadership, data.awards].map(sectionMarkup).join('');
+        return '<header class="sheet-header"><div class="identity"><h2>' + esc(data.name) + '</h2><div class="contact">' + data.contact + '</div>' + skillsMarkup(data.skills) + '</div><img class="portrait" src="' + esc(data.portrait) + '" alt="证件照"></header>' + '<section class="resume-section summary"><h3>自我评价</h3><p>' + esc(summaryValue()) + '</p></section>' + [data.education, data.experience, data.projects, data.research, data.leadership, data.awards].map(sectionMarkup).join('');
       }
       function settingValue(name) { var select = document.querySelector('select[name="' + name + '"]'); return select ? select.value : ''; }
       function updateLabels() { output.portraitSize.textContent = controls.portraitSize.value + ' mm'; }
@@ -286,15 +322,14 @@
         });
         pageSize.textContent = 'A4 · ' + documentPreview.children.length + ' 页';
       }
-      function updatePreview() { updateLabels(); if (!summary.value.trim()) { documentPreview.innerHTML = '<article class="resume-sheet"><div class="sheet-content"><div class="empty">请先填写新的自我评价</div></div></article>'; pageSize.textContent = 'A4 · 0 页'; return; } paginate(build()); }
-      function loadSource() { return fetch('index.html').then(function(response) { if (!response.ok) throw new Error('source'); return response.text(); }).then(function(html) { sourceDocument = new DOMParser().parseFromString(html, 'text/html'); var savedContent = localStorage.getItem('songzeroHomepageContent'); if (savedContent) sourceDocument.querySelector('.wrapper').innerHTML = savedContent; app.hidden = false; summary.focus(); }); }
+      function updatePreview() { updateLabels(); paginate(build()); }
+      function loadSource() { return SongZeroProfile.load().then(function(data) { profile = data; app.hidden = false; updatePreview(); }); }
       function downloadWord() {
-        if (!summary.value.trim()) { summary.reportValidity(); return; }
         var data = sourceData();
         var contactNode = document.createElement('div');
         contactNode.innerHTML = data.contact;
         var markup = '<h1>' + esc(data.name) + '</h1><p>' + esc(contactNode.textContent.trim()) + '</p><p>' + esc(data.skills.join('、')) + '</p>';
-        markup += '<h2>自我评价</h2><p>' + esc(summary.value.trim()) + '</p>';
+        markup += '<h2>自我评价</h2><p>' + esc(summaryValue()) + '</p>';
         [data.education, data.experience, data.projects, data.research, data.leadership, data.awards].forEach(function(item) {
           if (!item || !item.entries.length) return;
           markup += '<h2>' + esc(item.title) + '</h2>';
@@ -314,9 +349,9 @@
         link.click();
         URL.revokeObjectURL(link.href);
       }
-      summary.addEventListener('input', updatePreview); document.getElementById('previewButton').addEventListener('click', updatePreview); document.querySelectorAll('select[name]').forEach(function(select) { select.addEventListener('change', updatePreview); }); controls.portraitSize.addEventListener('input', updatePreview); controls.boldTitles.addEventListener('change', updatePreview);
+      document.getElementById('previewButton').addEventListener('click', updatePreview); document.querySelectorAll('select[name], select[data-version-section]').forEach(function(select) { select.addEventListener('change', updatePreview); }); controls.portraitSize.addEventListener('input', updatePreview); controls.boldTitles.addEventListener('change', updatePreview);
       document.getElementById('wordButton').addEventListener('click', downloadWord);
-      form.addEventListener('submit', async function(event) { event.preventDefault(); if (!summary.value.trim()) { summary.reportValidity(); return; } updatePreview(); if (typeof html2canvas !== 'function' || !window.jspdf || typeof window.jspdf.jsPDF !== 'function') { window.print(); return; } var pages = Array.prototype.slice.call(documentPreview.querySelectorAll('.resume-sheet')); var pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }); for (var index = 0; index < pages.length; index += 1) { var canvas = await html2canvas(pages[index], { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, width: pages[index].scrollWidth, height: pages[index].scrollHeight }); if (index > 0) pdf.addPage(); pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297, undefined, 'FAST'); } pdf.save((sourceData().name || 'resume') + '-简历.pdf'); });
+      form.addEventListener('submit', async function(event) { event.preventDefault(); updatePreview(); if (typeof html2canvas !== 'function' || !window.jspdf || typeof window.jspdf.jsPDF !== 'function') { window.print(); return; } var pages = Array.prototype.slice.call(documentPreview.querySelectorAll('.resume-sheet')); var pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait', compress: true }); for (var index = 0; index < pages.length; index += 1) { var canvas = await html2canvas(pages[index], { scale: 2, useCORS: true, backgroundColor: '#ffffff', logging: false, width: pages[index].scrollWidth, height: pages[index].scrollHeight }); if (index > 0) pdf.addPage(); pdf.addImage(canvas.toDataURL('image/jpeg', 0.98), 'JPEG', 0, 0, 210, 297, undefined, 'FAST'); } pdf.save((sourceData().name || 'resume') + '-简历.pdf'); });
       populateSettings();
       loadSource().catch(function() { error.hidden = false; });
     })();
